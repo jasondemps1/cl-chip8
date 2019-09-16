@@ -4,6 +4,9 @@ A CHIP-8 emulator in Common Lisp. Why not?!
 ## License
 GNU GPL v3
 
+## Dependencies
+SDL 2
+
 ## What is it?
 The [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8 "CHIP-8 Description") is an interpreted language written in the mid 70's. It's useful as an exercise to explore emulation, machine architecture, etc. This is one-such exercise, but in the land of Common Lisp!
 
