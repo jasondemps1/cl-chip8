@@ -229,5 +229,5 @@
   (cond-opcode *opcode*
                (("F_55"
                  (format t "Store V0 to VX in mem, starting at I. Offset from I increased by 1 for each value written, but I itself is unmodified."
-  )
+  )))))
 
