@@ -93,6 +93,13 @@
   (setf *I* 0)
   (setf *Stack* '()))
 
+(defun cycle ()
+  (fetch)
+  (if (not (decode))
+      (progn
+        (execute)
+        (store))))
+
 (defun main ()
   (init)
   (loop
@@ -135,7 +142,12 @@
     (setf *PC* (parse-integer (subseq *opcode* 1) :radix 16))
     t)
    ("F_65"
-    (format nil "LOAD Called V0 - Vx with values.")
+    (format t "LOAD Called V0 - Vx with values, starting at I, from memory.")
+    (loop
+       with x = (digit-char-p (char *opcode* 1) 16)
+       for i from 0 below x
+       for j = *I*
+       do (setf (aref *V* i) (aref *Memory* j)))
    t
    ))))
 
@@ -214,5 +226,8 @@
    )))
 
 (defun store ()
+  (cond-opcode *opcode*
+               (("F_55"
+                 (format t "Store V0 to VX in mem, starting at I. Offset from I increased by 1 for each value written, but I itself is unmodified."
   )
 
