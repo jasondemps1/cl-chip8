@@ -2,7 +2,7 @@
 
 (in-package #:cl-chip8)
 
-(defvar *opcode* nil)
+(defparameter *opcode* nil)
 
 ;; Memory
 (defparameter *Memory* (make-array '(4096) :element-type 'byte))
@@ -52,13 +52,13 @@
          collect `(eql ,ch (char ,opcode ,i)))))
 
 ;;; Doesn't work yet....
-(defmacro with-opcode (opcode &body body)
-  "Generates a temporary variable for each position in the opcode."
-  `(let
-       (,@(loop
-             for i from 0 below (length opcode)
-             collect `(p,i (aref opcode ,i))))
-     ,@body))
+;; (defmacro with-opcode (opcode &body body)
+;;   "Generates a temporary variable for each position in the opcode."
+;;   `(let
+;;        (,@(loop
+;;              for i from 0 below (length opcode)
+;;              collect `(p,i (aref opcode ,i))))
+;;      ,@body))
 
 
 (defun read-opcode (location collection)
@@ -126,13 +126,13 @@
     (incf *PC* 2)
     t)
    ("1___"
-    ;;(format nil "Jumping to an address....")
-    (setf *PC* (parse-integer (subseq opcode 1) :radix 16))
+    (format t "Jumping to an address....")
+    (setf *PC* (parse-integer (subseq *opcode* 1) :radix 16))
     t)
    ("2___" ;; Call Subroutine at NNN
-    (format nil "Calling subroutine.")
+    (format t "Calling subroutine.")
     (setf *Stack* (push-stack *PC* *Stack*))
-    (setf *PC* (parse-integer (subseq opcode 1) :radix 16))
+    (setf *PC* (parse-integer (subseq *opcode* 1) :radix 16))
     t)
    ("F_65"
     (format nil "LOAD Called V0 - Vx with values.")
@@ -145,72 +145,72 @@
     ;;; CONDITIONS
    (("3___" ;; Skip if (Vx == NN)
     (if (=
-         (aref *V* (hex->dec (subseq opcode 1 2)))
-         (parse-integer (subseq opcode 2) :radix 16))
+         (aref *V* (hex->dec (subseq *opcode* 1 2)))
+         (parse-integer (subseq *opcode* 2) :radix 16))
         (incf *PC* 2)))
    ("4___" ;; Skip if (Vx != NN)
     (if (not
          (=
-          (aref *V* (hex->dec (subseq opcode 1 2)))
-          (parse-integer (subseq opcode 2) :radix 16)))
+          (aref *V* (hex->dec (subseq *opcode* 1 2)))
+          (parse-integer (subseq *opcode* 2) :radix 16)))
         (incf *PC* 2)))
    ("5__0" ;; Skip if (Vx == Vy)
     (if (not
          (=
-          (aref *V* (hex->dec (subseq opcode 1 2)))
-          (aref *V* (hex->dec (subseq opcode 2 3)))))
+          (aref *V* (hex->dec (subseq *opcode* 1 2)))
+          (aref *V* (hex->dec (subseq *opcode* 2 3)))))
         (incf *PC* 2)))
    ("9__0" ;; if (Vx != Vy)
     (if (not
          (=
-          (parse-integer (subseq opcode 2) :radix 16)
-          (parse-integer (subseq opcode 3) :radix 16)))
+          (parse-integer (subseq *opcode* 2) :radix 16)
+          (parse-integer (subseq *opcode* 3) :radix 16)))
         (incf *PC* 2)))
    
     ;;; CONSTANTS
    ("6___" ;; Vx = NN
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
-     (subseq opcode 2)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
+     (subseq *opcode* 2)))
 
    ;;; ASSIGNMENT
    ("8__0" ;; Vx = Vy
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
-     (aref *V* (hex->dec (subseq opcode 2 3)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
+     (aref *V* (hex->dec (subseq *opcode* 2 3)))
      ))
 
    ;;; MATH
    ("8__1" ;; Vx = Vx | Vy
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
      (logior
-      (aref *V* (hex->dec (subseq opcode 1 2)))
-      (aref *V* (hex->dec (subseq opcode 2 3))))))
+      (aref *V* (hex->dec (subseq *opcode* 1 2)))
+      (aref *V* (hex->dec (subseq *opcode* 2 3))))))
    ("8__2" ;; Vx = Vx & Vy
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
      (logand
-      (aref *V* (hex->dec (subseq opcode 1 2)))
-      (aref *V* (hex->dec (subseq opcode 2 3))))))
+      (aref *V* (hex->dec (subseq *opcode* 1 2)))
+      (aref *V* (hex->dec (subseq *opcode* 2 3))))))
    ("8__3" ;; Vx = Vx ^ Vy
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
      (logxor
-      (aref *V* (hex->dec (subseq opcode 1 2)))
-      (aref *V* (hex->dec (subseq opcode 2 3))))))
+      (aref *V* (hex->dec (subseq *opcode* 1 2)))
+      (aref *V* (hex->dec (subseq *opcode* 2 3))))))
    ("8__4" ;; Vx += Vy (TODO: VF = 1 on carry, 0 if not)
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
      (+
-      (aref *V* (hex->dec (subseq opcode 1 2)))
-      (aref *V* (hex->dec (subseq opcode 2 3))))))
+      (aref *V* (hex->dec (subseq *opcode* 1 2)))
+      (aref *V* (hex->dec (subseq *opcode* 2 3))))))
    ("8__5" ;; Vx -= Vy (TODO: VF = 0 when borrow, 1 if not)
     (setf
-     (aref *V* (hex->dec (subseq opcode 1 2)))
+     (aref *V* (hex->dec (subseq *opcode* 1 2)))
      (-
-      (aref *V* (hex->dec (subseq opcode 1 2)))
-      (aref *V* (hex->dec (subseq opcode 2 3))))))
+      (aref *V* (hex->dec (subseq *opcode* 1 2)))
+      (aref *V* (hex->dec (subseq *opcode* 2 3))))))
    )))
 
 (defun store ()
